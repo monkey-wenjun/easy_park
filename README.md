@@ -84,6 +84,12 @@ docker compose ps
 docker compose logs -f
 ```
 
+### 本地调试
+
+1. 修改 `config/config.yml` 中的 `host` 为 `127.0.0.1`
+2. 修改 `run_api.py` 中的 `app.run(host='0.0.0.0', port=8000, debug=False)` 为 `app.run(host='0.0.0.0', port=8000, debug=True)`
+3. 执行 python3 run_api.py
+
 ### 4. 访问系统
 
 - Web 界面：`http://localhost:8000`
@@ -162,4 +168,4 @@ MIT License
 
 - 作者：阿文
 - Email：hsweib@gmail.com
-- 项目地址：[GitHub 仓库地址](https://github.com/hsweib/parking-system)
+- 项目地址：[GitHub 仓库地址](https://github.com/monkey-wenjun/easy_park)
