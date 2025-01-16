@@ -1,0 +1,12 @@
+.env
+.venv
+.idea
+.vscode
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+config/config.yml
+.vscode

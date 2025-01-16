@@ -1,0 +1,276 @@
+/* 整体容器样式 */
+#app {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.el-header {
+    background-color: #409EFF;
+    color: white;
+    text-align: center;
+    padding: 0;
+    border-radius: 4px 4px 0 0;
+}
+
+.el-header h2 {
+    margin: 0;
+    padding: 20px 0;
+    font-size: 24px;
+}
+
+.el-main {
+    padding: 20px;
+    background-color: white;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    height: calc(100vh - 120px);
+    overflow: hidden;
+}
+
+/* 设置页面背景色 */
+body {
+    background-color: #f5f7fa;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    overflow-x: hidden;
+}
+
+.search-form {
+    margin-bottom: 20px;
+    background-color: #f5f7fa;
+    padding: 30px 20px;
+    border-radius: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.el-table {
+    margin-top: 20px;
+    flex: 1;
+}
+
+.el-form-item {
+    margin-bottom: 0;
+    margin-right: 20px;
+}
+
+/* 二维码容器样式 */
+[id^="qrcode-"] {
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+[id^="qrcode-"] img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* 操作按钮样式 */
+.el-button + .el-button {
+    margin-left: 5px;
+}
+
+/* 日期选择器样式 */
+.el-date-picker {
+    width: 200px;
+}
+
+/* 状态选择器样式 */
+.el-select {
+    width: 120px;
+}
+
+/* 日期选择器中的日期标记样式 */
+.el-date-picker__cell.current:not(.disabled) {
+    color: #409EFF;
+    font-weight: bold;
+}
+
+/* 选中日期的样式 */
+.el-date-picker__cell.selected {
+    background-color: #409EFF !important;
+    color: white !important;
+}
+
+/* 今天日期的样式 */
+.el-date-picker__cell.today {
+    color: #409EFF;
+    font-weight: bold;
+}
+
+/* 有数据的日期标记样式 */
+.el-date-picker__cell.has-data {
+    position: relative;
+}
+
+.el-date-picker__cell.has-data::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: #67C23A;
+}
+
+/* 表格容器样式 */
+.table-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 250px);
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* 空数据样式 */
+.el-table__empty-text {
+    font-size: 16px;
+    color: #909399;
+}
+
+/* 调整表单项的间距 */
+.search-form .el-form-item:last-child {
+    margin-right: 0;
+}
+
+/* 确保搜索表单不会溢出 */
+@media screen and (max-width: 1400px) {
+    .search-form {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+    
+    .search-form .el-form-item {
+        margin-bottom: 10px;
+    }
+}
+
+/* 日期选择器弹出层样式 */
+.custom-date-picker {
+    background-color: white !important;
+    border: 1px solid #DCDFE6;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    padding: 8px;
+}
+
+/* 日期时间输入框样式 */
+.custom-date-picker .el-date-picker__time-header {
+    padding: 8px;
+    border-bottom: 1px solid #EBEEF5;
+}
+
+.custom-date-picker .el-date-picker__editor-wrap {
+    padding: 0 5px;
+}
+
+.custom-date-picker .el-input__wrapper {
+    padding: 0 8px;
+}
+
+/* 日期选择器头部样式 */
+.custom-date-picker .el-date-picker__header {
+    padding: 12px 12px 8px;
+    margin: 0;
+}
+
+/* 日期面板内容样式 */
+.custom-date-picker .el-date-picker__content {
+    padding: 8px 12px;
+    width: auto;
+}
+
+/* 星期和日期格子样式 */
+.custom-date-picker .el-date-picker__body {
+    padding: 0;
+}
+
+.custom-date-picker .el-picker-panel__content {
+    margin: 0;
+    padding: 0;
+}
+
+.custom-date-picker .el-date-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.custom-date-picker .el-date-table th {
+    padding: 8px 0;
+    font-weight: 400;
+    border-bottom: 1px solid #EBEEF5;
+}
+
+.custom-date-picker .el-date-table td {
+    padding: 4px 0;
+    height: 36px;
+}
+
+/* 底部按钮区域样式 */
+.custom-date-picker .el-picker-panel__footer {
+    background-color: white;
+    border-top: 1px solid #EBEEF5;
+    padding: 8px 12px;
+    text-align: right;
+}
+
+.custom-date-picker .el-picker-panel__footer .el-button {
+    font-size: 14px;
+    padding: 8px 16px;
+    margin-left: 8px;
+}
+
+/* 时间选择器背景 */
+.custom-date-picker .el-date-picker__time-header,
+.custom-date-picker .el-picker-panel__content,
+.custom-date-picker .el-date-picker__header {
+    background-color: white;
+}
+
+/* 确保所有内容对齐 */
+.custom-date-picker .el-date-picker__header,
+.custom-date-picker .el-picker-panel__content,
+.custom-date-picker .el-date-picker__time-header {
+    width: auto;
+    box-sizing: border-box;
+}
+
+/* 分页容器样式 */
+.pagination-container {
+    margin-top: 20px;
+    padding: 15px;
+    display: flex;
+    justify-content: flex-end;
+    background-color: white;
+    border-top: 1px solid #EBEEF5;
+}
+
+/* 分页组件样式 */
+.el-pagination {
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* 分页按钮样式 */
+.el-pagination .btn-prev,
+.el-pagination .btn-next,
+.el-pagination .el-pager li {
+    background-color: #f4f4f5;
+    color: #606266;
+    min-width: 32px;
+    border-radius: 2px;
+    margin: 0 5px;
+}
+
+.el-pagination .el-pagination__jump {
+    margin-left: 16px;
+} 

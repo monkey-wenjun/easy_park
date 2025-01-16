@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>停车系统 - 注册</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa;
+            background-image: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        .register-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 320px;
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .register-container:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-size: 0.9rem;
+        }
+        
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #ffc107;
+            box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
+        }
+        
+        button {
+            width: 100%;
+            padding: 0.9rem;
+            background-color: #ffc107;
+            color: #333;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #ffca2c;
+            transform: translateY(-1px);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .login-link a {
+            color: #ffc107;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .login-link a:hover {
+            color: #ffca2c;
+            text-decoration: underline;
+        }
+        
+        .form-tip {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 0.4rem;
+            transition: color 0.3s ease;
+        }
+        
+        .form-group:hover .form-tip {
+            color: #666;
+        }
+        
+        .email-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .send-code-btn {
+            padding: 8px 15px;
+            background-color: #409EFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .send-code-btn:disabled {
+            background-color: #a0cfff;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <h2>用户注册</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" name="username" required placeholder="请输入用户名">
+                <div class="form-tip">用户名用于登录系统</div>
+            </div>
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" name="password" required placeholder="请输入密码">
+                <div class="form-tip">密码长度至少6位</div>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">确认密码</label>
+                <input type="password" id="confirm_password" name="confirm_password" required placeholder="请再次输入密码">
+                <div class="form-tip">请确保两次输入的密码一致</div>
+            </div>
+            <div class="form-group">
+                <label for="license_plate">车牌号</label>
+                <input type="text" id="license_plate" name="license_plate" required placeholder="请输入车牌号">
+                <div class="form-tip">请输入完整的车牌号码</div>
+            </div>
+            <div class="form-group">
+                <label for="email">邮箱：</label>
+                <div class="email-group">
+                    <input type="email" id="email" name="email" required>
+                    <button type="button" id="sendCodeBtn" class="send-code-btn">发送验证码</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="verificationCode">验证码：</label>
+                <input type="text" id="verificationCode" name="verificationCode" required maxlength="6">
+            </div>
+            <button type="submit">注册</button>
+            <div class="login-link">
+                <a href="/login.html">已有账号？立即登录</a>
+            </div>
+        </form>
+    </div>
+
+    <script src="/js/alert.js"></script>
+    <script>
+        document.getElementById('sendCodeBtn').addEventListener('click', async function() {
+            const email = document.getElementById('email').value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (!email || !emailRegex.test(email)) {
+                alert('请输入有效的邮箱地址');
+                return;
+            }
+            
+            try {
+                // 先检查邮箱是否已被注册
+                const checkResponse = await fetch('/api/check-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+                
+                const checkData = await checkResponse.json();
+                if (checkData.code !== 0) {
+                    alert(checkData.message || '该邮箱已被注册');
+                    return;
+                }
+                
+                const response = await fetch('/api/send-verification-code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        type: 'register'
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.code === 0) {
+                    alert('验证码已发送，请查收邮件');
+                    // 禁用按钮60秒
+                    const btn = this;
+                    btn.disabled = true;
+                    let countdown = 60;
+                    const timer = setInterval(() => {
+                        btn.textContent = `${countdown}秒后重试`;
+                        countdown--;
+                        if (countdown < 0) {
+                            clearInterval(timer);
+                            btn.disabled = false;
+                            btn.textContent = '发送验证码';
+                        }
+                    }, 1000);
+                } else {
+                    alert(data.message || '发送验证码失败');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('发送验证码失败');
+            }
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const password = document.getElementById('password').value.trim();
+            const confirmPassword = document.getElementById('confirm_password').value.trim();
+            
+            // 验证两次密码是否一致
+            if (password !== confirmPassword) {
+                alert('两次输入的密码不一致');
+                return;
+            }
+            
+            // 验证密码长度
+            if (password.length < 6) {
+                alert('密码长度至少6位');
+                return;
+            }
+            
+            const formData = {
+                username: document.getElementById('username').value.trim(),
+                password: password,
+                email: document.getElementById('email').value.trim(),
+                verificationCode: document.getElementById('verificationCode').value.trim(),
+                license_plate: document.getElementById('license_plate').value.trim()
+            };
+
+            // 验证邮箱格式
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                alert('请输入有效的邮箱地址');
+                return;
+            }
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                if (data.code === 0) {
+                    await alert('注册成功！即将跳转到登录页面...', true);
+                    window.location.href = '/login.html';
+                } else {
+                    alert(data.message || '注册失败');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('注册失败，请稍后重试');
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        // 刷新验证码
+        function refreshCaptcha() {
+            const captchaImg = document.getElementById('captchaImage');
+            const timestamp = new Date().getTime();  // 添加时间戳防止缓存
+            captchaImg.src = `/api/captcha?t=${timestamp}`;
+        }
+        
+        // 页面加载时自动刷新验证码
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshCaptcha();
+        });
+    </script>
+    <title>登录 - 停车票管理系统</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa;
+            background-image: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        .login-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 320px;
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .login-container:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-size: 0.9rem;
+        }
+        
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #ffc107;
+            box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
+        }
+        
+        button {
+            width: 100%;
+            padding: 0.9rem;
+            background-color: #ffc107;
+            color: #333;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #ffca2c;
+            transform: translateY(-1px);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .register-link {
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .links {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .forgot-password-link {
+            font-size: 0.9rem;
+        }
+        
+        .register-link a,
+        .forgot-password-link a {
+            color: #ffc107;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .register-link a:hover,
+        .forgot-password-link a:hover {
+            color: #ffca2c;
+            text-decoration: underline;
+        }
+        
+        .captcha-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .captcha-input {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .captcha-image {
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            height: 42px;
+            margin-bottom: 2px;
+        }
+        
+        .captcha-input input {
+            height: 42px;
+            padding: 0.8rem;
+            box-sizing: border-box;
+        }
+        
+        .form-group input {
+            height: 42px;
+            padding: 0.8rem;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>停车票管理系统</h1>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" name="username" required>
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label>验证码</label>
+                <div class="captcha-container">
+                    <input type="text" name="captcha" required>
+                    <img id="captchaImage" src="/api/captcha" onclick="refreshCaptcha()">
+                </div>
+            </div>
+            <button type="submit">登录</button>
+            <div class="links">
+                <div class="register-link">
+                    <a href="/register.html">还没有账号？立即注册</a>
+                </div>
+                <div class="forgot-password-link">
+                    <a href="/reset_password.html">忘记密码？</a>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script src="/js/alert.js"></script>
+</body>
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        try {
+            const username = document.querySelector('input[name="username"]').value.trim();
+            const password = document.querySelector('input[name="password"]').value.trim();
+            const captcha = document.querySelector('input[name="captcha"]').value.trim();
+            
+            if (!username || !password || !captcha) {
+                alert('请填写完整信息');
+                return;
+            }
+            
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',  // 确保包含 cookies
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                    captcha: captcha.toLowerCase()  // 转换为小写再提交
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.code === 0) {
+                // 检查 cookie 是否设置成功
+                if (!document.cookie.includes('token=')) {
+                    console.error('Cookie not set after login');
+                }
+                
+                localStorage.setItem('user', JSON.stringify(data.data));
+                window.location.href = '/index.html';
+            } else {
+                alert(data.message || '登录失败');
+                refreshCaptcha();  // 刷新验证码
+                document.querySelector('input[name="captcha"]').value = '';  // 清空验证码输入框
+            }
+        } catch (error) {
+            console.error('登录失败:', error);
+            alert('登录失败，请稍后重试');
+            refreshCaptcha();
+            document.querySelector('input[name="captcha"]').value = '';
+        }
+    });
+</script>
+</html> 

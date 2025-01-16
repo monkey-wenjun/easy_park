@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>停车票管理系统</title>
+    <link rel="stylesheet" href="https://registry.npmmirror.com/element-plus/2.4.4/files/dist/index.css">
+    <script src="/qrcode.min.js"></script>
+    <link rel="stylesheet" href="index.css">
+    <script src="index.js"></script>
+    <style>
+        /* 添加遮罩层样式 */
+        .schedule-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .schedule-overlay-content {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .schedule-overlay-icon {
+            font-size: 48px;
+            color: #ff4d4f;
+            margin-bottom: 16px;
+        }
+
+        .schedule-overlay-message {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .schedule-overlay-link {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 8px 16px;
+            background-color: #1890ff;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .schedule-overlay-link:hover {
+            background-color: #40a9ff;
+        }
+
+        /* 确保定时任务页面使用相对定位 */
+        #schedulePage {
+            position: relative;
+            min-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 左侧导航栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <a href="/" class="sidebar-brand">停车票管理系统</a>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item active" data-content="records">停车券管理</li>
+                <li class="nav-item" data-content="upload">上传停车券</li>
+                <li class="nav-item" data-content="profile">个人中心</li>
+                <li class="nav-item" data-content="schedule">定时任务</li>
+                <li class="nav-item" data-content="execution-logs">核销记录</li>
+                <li class="nav-item" data-content="share-records">分享记录</li>
+            </ul>
+        </div>
+
+        <!-- 顶部导航栏 -->
+        <div class="top-navbar">
+            <div class="user-info">
+                <span id="userInfo"></span>
+                <button class="logout-btn" id="logoutBtn">退出登录</button>
+            </div>
+        </div>
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <!-- 停车券管理页面 -->
+            <div id="recordsPage">
+                <div class="search-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>开始时间</label>
+                            <input type="datetime-local" id="startTime" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>结束时间</label>
+                            <input type="datetime-local" id="endTime" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>状态</label>
+                            <select id="status" class="form-control">
+                                <option value="">全部</option>
+                                <option value="0" selected>正常</option>  <!-- 添加 selected 属性 -->
+                                <option value="1">已核销</option>
+                            </select>
+                        </div>
+                        <div class="form-buttons">
+                            <button class="btn btn-primary" id="searchButton">查询</button>
+                            <button class="btn btn-secondary" id="resetSearchButton">重置</button>
+                        </div>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="selectAll">
+                            </th>
+                            <th>二维码</th>
+                            <th>券码编号</th>
+                            <th>商家名称</th>
+                            <th>开始时间</th>
+                            <th>结束时间</th>
+                            <th>状态</th>
+                            <th>使用时间</th>
+                            <th>核销时间</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsTable">
+                        <!-- 数据将通过 JavaScript 动态填充 -->
+                    </tbody>
+                </table>
+
+                <div class="pagination">
+                    <div class="pagination-info">
+                        共 <span id="totalRecords">0</span> 条记录
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="btn" id="prevBtn">上一页</button>
+                        <span class="page-info">
+                            第 <span id="currentPage">1</span> 页
+                        </span>
+                        <button class="btn" id="nextBtn">下一页</button>
+                    </div>
+                </div>
+
+                <!-- 添加批量操作按钮 -->
+                <div class="batch-actions" style="margin-top: 10px;">
+                    <button class="btn btn-primary" id="batchShareBtn" disabled>
+                        批量分享
+                    </button>
+                </div>
+            </div>
+
+            <!-- 上传停车券页面 -->
+            <div id="uploadPage" style="display: none;">
+                <h2>新增停车券</h2>
+                <div class="search-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>上传停车券图片</label>
+                            <input type="file" id="qrcodeFile" accept=".png,.jpg,.jpeg" class="form-control" multiple>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="upload-preview" id="uploadPreview"></div>
+                    </div>
+                    <div class="form-buttons">
+                        <button class="btn btn-primary" id="uploadButton">上传并解析</button>
+                    </div>
+                </div>
+                <!-- 添加上传结果显示区域 -->
+                <div class="upload-results">
+                    <div id="markedImagePreview"></div>
+                    <div id="uploadResults"></div>
+                </div>
+            </div>
+
+            <!-- 个人中心页面 -->
+            <div id="profilePage" style="display: none;">
+                <div class="section-header">
+                    <h2>个人中心</h2>
+                </div>
+                <div class="profile-container">
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <h3>个人信息</h3>
+                            <button class="edit-btn" id="editProfileButton">编辑</button>
+                        </div>
+                        <div class="profile-content">
+                            <div class="profile-item">
+                                <label>用户名：</label>
+                                <span id="profile-username"></span>
+                            </div>
+                            <div class="profile-item">
+                                <label>车牌号：</label>
+                                <span id="profile-license"></span>
+                            </div>
+                            <div class="profile-item">
+                                <label>用户编号：</label>
+                                <span id="profile-userno"></span>
+                            </div>
+                            <div class="profile-item">
+                                <label>微信 OpenID：</label>
+                                <span id="profile-openid"></span>
+                            </div>
+                            <div class="profile-item">
+                                <label>邮箱：</label>
+                                <span id="profile-email"></span>
+                            </div>
+                            <div class="profile-item">
+                                <label>注册时间：</label>
+                                <span id="profile-created"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 添加编辑个人信息的模态框 -->
+            <div id="editProfileModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>编辑个人信息</h3>
+                        <span class="close" id="closeEditModalButton">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editProfileForm">
+                            <div class="form-group">
+                                <label>车牌号：</label>
+                                <input type="text" id="edit-license" name="license_plate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>用户编号：</label>
+                                <input type="text" id="edit-userno" name="user_no" required>
+                            </div>
+                            <div class="form-group">
+                                <label>微信 OpenID：</label>
+                                <input type="text" id="edit-openid" name="openid" required>
+                            </div>
+                            <div class="form-group">
+                                <label>邮箱：</label>
+                                <input type="email" id="edit-email" name="email" required>
+                            </div>
+                            <button type="submit" class="submit-btn">保存</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 添加定时任务页面 -->
+            <div id="schedulePage" style="display: none;">
+                <div class="section-header">
+                    <h2>定时核销任务</h2>
+                </div>
+                <div class="schedule-container">
+                    <!-- 创建任务卡片 -->
+                    <div class="schedule-card">
+                        <div class="schedule-header">
+                            <h3>创建定时任务</h3>
+                        </div>
+                        <form id="scheduleForm" class="schedule-form">
+                            <div class="time-selector">
+                                <div class="form-group">
+                                    <label>执行时间：</label>
+                                    <div class="time-inputs">
+                                        <select id="scheduleHour" required>
+                                            <option value="">时</option>
+                                        </select>
+                                        <span class="time-separator">:</span>
+                                        <select id="scheduleMinute" required>
+                                            <option value="">分</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>执行日期：</label>
+                                <div class="weekday-selector">
+                                    <label class="weekday-item"><input type="checkbox" value="1"><span>周一</span></label>
+                                    <label class="weekday-item"><input type="checkbox" value="2"><span>周二</span></label>
+                                    <label class="weekday-item"><input type="checkbox" value="3"><span>周三</span></label>
+                                    <label class="weekday-item"><input type="checkbox" value="4"><span>周四</span></label>
+                                    <label class="weekday-item"><input type="checkbox" value="5"><span>周五</span></label>
+                                    <label class="weekday-item"><input type="checkbox" value="6"><span>周六</span></label>
+                                    <label class="weekday-item"><input type="checkbox" value="0"><span>周日</span></label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>自动化选项：</label>
+                                <div class="auto-options">
+                                    <label class="auto-option">
+                                        <input type="checkbox" id="autoCollect" disabled checked>
+                                        <span class="disabled">自动领券</span>
+                                    </label>
+                                    <label class="auto-option">
+                                        <input type="checkbox" id="autoPay">
+                                        <span>自动核销</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="submit-btn">创建任务</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 任务列表卡片 -->
+                    <div class="schedule-card">
+                        <div class="schedule-header">
+                            <h3>当前任务列表</h3>
+                        </div>
+                        <div id="currentSchedules" class="schedule-list">
+                            <!-- 任务列表将通过JS动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 添加编辑定时任务的模态框 -->
+            <div id="editScheduleModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>编辑定时任务</h3>
+                        <span class="close" id="closeEditScheduleModalButton">&times;</span>
+                    </div>
+                    <form id="editScheduleForm" class="schedule-form">
+                        <input type="hidden" id="edit-schedule-id">
+                        <div class="time-selector">
+                            <div class="form-group">
+                                <label>执行时间：</label>
+                                <div class="time-inputs">
+                                    <select id="edit-schedule-hour" required>
+                                        <option value="">时</option>
+                                    </select>
+                                    <span class="time-separator">:</span>
+                                    <select id="edit-schedule-minute" required>
+                                        <option value="">分</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>执行日期：</label>
+                            <div class="weekday-selector">
+                                <label class="weekday-item"><input type="checkbox" value="1"><span>周一</span></label>
+                                <label class="weekday-item"><input type="checkbox" value="2"><span>周二</span></label>
+                                <label class="weekday-item"><input type="checkbox" value="3"><span>周三</span></label>
+                                <label class="weekday-item"><input type="checkbox" value="4"><span>周四</span></label>
+                                <label class="weekday-item"><input type="checkbox" value="5"><span>周五</span></label>
+                                <label class="weekday-item"><input type="checkbox" value="6"><span>周六</span></label>
+                                <label class="weekday-item"><input type="checkbox" value="0"><span>周日</span></label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>自动化选项：</label>
+                            <div class="auto-options">
+                                <label class="auto-option">
+                                    <input type="checkbox" id="edit-autoCollect" disabled checked>
+                                    <span class="disabled">自动领券</span>
+                                </label>
+                                <label class="auto-option">
+                                    <input type="checkbox" id="edit-autoPay">
+                                    <span>自动核销</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="submit-btn">保存修改</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 添加核销记录页面 -->
+            <div id="executionLogsPage" style="display: none;">
+                <div class="section-header">
+                    <h2>核销记录</h2>
+                </div>
+                <div class="execution-logs-container">
+                    <div class="search-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>开始日期</label>
+                                <input type="date" id="logStartDate" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>结束日期</label>
+                                <input type="date" id="logEndDate" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>执行状态</label>
+                                <select id="logStatus" class="form-control">
+                                    <option value="">全部</option>
+                                    <option value="1">成功</option>
+                                    <option value="0">失败</option>
+                                </select>
+                            </div>
+                            <div class="form-buttons">
+                                <button class="btn btn-primary" id="searchLogsButton">查询</button>
+                                <button class="btn btn-secondary" id="resetLogsButton">重置</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="logs-table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>任务ID</th>
+                                    <th>执行日期</th>
+                                    <th>执行时间</th>
+                                    <th>执行状态</th>
+                                    <th>错误信息</th>
+                                </tr>
+                            </thead>
+                            <tbody id="executionLogsTable">
+                                <!-- 数据将通过 JavaScript 动态填充 -->
+                            </tbody>
+                        </table>
+
+                        <div class="pagination">
+                            <div class="pagination-info">
+                                共 <span id="totalLogs">0</span> 条记录
+                            </div>
+                            <div class="pagination-controls">
+                                <button class="btn" id="prevLogBtn">上一页</button>
+                                <span class="page-info">
+                                    第 <span id="currentLogPage">1</span> 页
+                                </span>
+                                <button class="btn" id="nextLogBtn">下一页</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分享记录页面 -->
+            <div id="share-recordsPage" style="display: none;">
+                <div class="section-header">
+                    <h2>分享记录</h2>
+                </div>
+                <div class="share-records-container">
+                    <div class="search-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>开始日期</label>
+                                <input type="date" id="shareStartDate" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>结束日期</label>
+                                <input type="date" id="shareEndDate" class="form-control">
+                            </div>
+                            <div class="form-buttons">
+                                <button class="btn btn-primary" id="searchShareButton">查询</button>
+                                <button class="btn btn-secondary" id="resetShareButton">重置</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="share-table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>分享时间</th>
+                                    <th>分享人</th>
+                                    <th>分享数量</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shareRecordsTable">
+                                <!-- 数据将通过 JavaScript 动态填充 -->
+                            </tbody>
+                        </table>
+
+                        <div class="pagination">
+                            <div class="pagination-info">
+                                共 <span id="totalShares">0</span> 条记录
+                            </div>
+                            <div class="pagination-controls">
+                                <button class="btn" id="prevShareBtn">上一页</button>
+                                <span class="page-info">
+                                    第 <span id="currentSharePage">1</span> 页
+                                </span>
+                                <button class="btn" id="nextShareBtn">下一页</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加分享对话框 -->
+    <div id="shareModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>分享停车券</h3>
+                <span class="close" id="closeShareModalButton">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="shareForm">
+                    <input type="hidden" id="share-code-id">
+                    <div class="share-info">
+                        <!-- 添加这个显示选中数量的元素 -->
+                        <p class="selected-count">已选择 <span id="selectedCount">0</span> 张停车券</p>
+                    </div>
+                    <div class="form-group">
+                        <label>分享给用户：</label>
+                        <input type="text" id="share-username" name="username" required>
+                    </div>
+                    <button type="submit" class="submit-btn">确认分享</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 二维码放大模态框 -->
+    <div id="qrcodeModal">
+        <div class="modal-content">
+            <span class="close" id="closeQRCodeModalButton">&times;</span>
+            <div id="largeQRCode" style="text-align: center; padding: 20px;"></div>
+        </div>
+    </div>
+
+    <script src="/js/alert.js"></script>
+</body>
+</html> 
