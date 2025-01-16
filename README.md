@@ -49,8 +49,8 @@ parking-system/
 ### 1. 克隆项目 
 ```
 bash
-git clone https://github.com/yourusername/parking-system.git
-cd parking-system
+git clonehttps://github.com/monkey-wenjun/easy_park.git
+cd easy_park
 ```
 ### 3. 使用 Docker Compose 部署
 
